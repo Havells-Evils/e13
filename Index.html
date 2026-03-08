@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Immersive culinary experience | SAVOIR</title>
+  <!-- Google Fonts & base styling -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #faf7f2;
+      color: #2e241f;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* ---- cinematic intro overlay ---- */
+    #intro-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: #1f1b18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 1.8s cubic-bezier(0.77, 0, 0.18, 1);
+      pointer-events: none;
+    }
+
+    .intro-content {
+      text-align: center;
+      color: #e7dac9;
+      animation: softPulse 4s infinite alternate;
+    }
+
+    .intro-content h2 {
+      font-size: clamp(2rem, 8vw, 4.5rem);
+      font-weight: 400;
+      letter-spacing: 0.3rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      border-right: 2px solid #c4a78b;
+      white-space: nowrap;
+      overflow: hidden;
+      animation: typing 3.5s steps(40, end) forwards, blinkCaret 0.75s step-end infinite;
+      width: 0;
+      animation: typing 4s steps(40, end) forwards, blinkCaret 0.75s step-end infinite;
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    @keyframes blinkCaret {
+      from, to { border-color: transparent; }
+      50% { border-color: #c4a78b; }
+    }
+
+    .intro-sub {
+      font-size: 1rem;
+      letter-spacing: 0.5rem;
+      color: #bfa88e;
+      margin-top: 1rem;
+      opacity: 0;
+      animation: fadeUp 2s 2s forwards;
+    }
+
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* background motion (ingredient shapes) */
+    .intro-bg-motion {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .intro-bg-motion span {
+      position: absolute;
+      display: block;
+      width: 80px;
+      height: 80px;
+      background: rgba(180, 130, 90, 0.1);
+      border-radius: 50%;
+      filter: blur(40px);
+      animation: float 18s infinite;
+    }
+
+    .intro-bg-motion span:nth-child(1) { top: 20%; left: 10%; width: 150px; height: 150px; background: #7a5a44; animation-duration: 25s; }
+    .intro-bg-motion span:nth-child(2) { bottom: 10%; right: 15%; width: 200px; height: 200px; background: #a77b55; animation-duration: 22s; animation-delay: -3s; }
+    .intro-bg-motion span:nth-child(3) { top: 60%; left: 70%; width: 120px; height: 120px; background: #6d4f3a; animation-duration: 30s; }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -50px) scale(1.2); }
+      66% { transform: translate(-30px, 30px) scale(0.9); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
+    /* main content wrapper */
+    main {
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    /* floating navigation */
+    .floating-nav {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(46, 36, 31, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 0.8rem 1.8rem;
+      border-radius: 60px;
+      border: 1px solid rgba(200, 170, 140, 0.5);
+      z-index: 99;
+      display: flex;
+      gap: 2rem;
+      opacity: 0;
+      transition: opacity 0.4s, transform 0.3s;
+      pointer-events: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .floating-nav a {
+      color: #f0e2d2;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+      pointer-events: auto;
+    }
+
+    .floating-nav a:hover {
+      color: #dbb68c;
+    }
+
+    .floating-nav.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* sections general */
+    section {
+      padding: 5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 2.8rem;
+      margin-bottom: 2rem;
+      color: #3d322b;
+      position: relative;
+      font-weight: 600;
+    }
+
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 100px;
+      height: 3px;
+      background: #b28b65;
+      margin-top: 0.5rem;
+    }
+
+    /* hero / home section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      background: linear-gradient(135deg, #eae0d5 0%, #dac9bb 100%);
+    }
+
+    .hero-content {
+      max-width: 700px;
+      padding-left: 5%;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      line-height: 1.1;
+      color: #2e241f;
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      margin: 1.5rem 0 2rem;
+      color: #4d3b2e;
+      font-weight: 300;
+    }
+
+    /* flavor grid */
+    .flavor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .ingredient-card {
+      background: white;
+      border-radius: 200px 200px 30px 30px;
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: default;
+      border: 1px solid #ece3da;
+    }
+
+    .ingredient-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 35px rgba(110, 70, 40, 0.1);
+    }
+
+    .ingredient-icon {
+      font-size: 4rem;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(2px 6px 8px rgba(120, 70, 20, 0.15));
+    }
+
+    .ingredient-name {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0.5rem 0;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .ingredient-detail {
+      font-size: 0.95rem;
+      color: #6b5340;
+      opacity: 0;
+      max-height: 0;
+      transition: opacity 0.3s, max-height 0.4s;
+      overflow: hidden;
+    }
+
+    .ingredient-card:hover .ingredient-detail {
+      opacity: 1;
+      max-height: 120px;
+    }
+
+    /* menu categories */
+    .menu-categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .menu-cat-btn {
+      background: none;
+      border: 1px solid #c6ad93;
+      padding: 0.7rem 2rem;
+      border-radius: 40px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #3a2e26;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .menu-cat-btn.active, .menu-cat-btn:hover {
+      background: #b28b65;
+      border-color: #b28b65;
+      color: white;
+    }
+
+    .dish-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 2rem;
+      display: none;
+    }
+
+    .dish-grid.active-grid {
+      display: grid;
+    }
+
+    .dish-card {
+      background: white;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .dish-img {
+      height: 180px;
+      background: #cbb59e;
+      background-image: linear-gradient(145deg, #cfb79b 0%, #b28e6e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+    }
+
+    .dish-info {
+      padding: 1.5rem;
+    }
+
+    .dish-info h4 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .dish-desc {
+      font-size: 0.9rem;
+      color: #6a4f39;
+      margin: 0.5rem 0;
+    }
+
+    .dish-price {
+      font-weight: 600;
+      color: #7a5a3e;
+      font-size: 1.2rem;
+    }
+
+    /* chef spotlight */
+    .chef-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3rem;
+      align-items: center;
+      background: #f0e7de;
+      border-radius: 50px;
+      padding: 3rem;
+    }
+
+    .chef-photo {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: #bba48d;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%2390796b"><circle cx="50" cy="45" r="20"/><circle cx="50" cy="95" r="30"/><rect x="30" y="40" width="40" height="25" rx="12"/></svg>');
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+    }
+
+    .chef-bio {
+      flex: 1;
+    }
+
+    /* atmosphere gallery */
+    .atmo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .atmo-item {
+      height: 280px;
+      background: #cfbfae;
+      border-radius: 30px;
+      background: linear-gradient(125deg, #cdb9a6, #b2967c);
+      box-shadow: 0 8px 18px rgba(70,40,20,0.1);
+    }
+
+    /* guest stories */
+    .stories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .story-card {
+      background: #ffffffc2;
+      backdrop-filter: blur(4px);
+      padding: 2rem;
+      border-radius: 30px;
+      box-shadow: 0 10px 25px -8px rgba(90,60,30,0.2);
+      border: 1px solid #e5d5c5;
+    }
+
+    /* reservation form */
+    .reserve-form {
+      max-width: 700px;
+      background: #fffbf6;
+      padding: 3rem;
+      border-radius: 40px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      flex: 1 1 200px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: #534436;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border: 1px solid #dccfc2;
+      border-radius: 40px;
+      background: white;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    .btn {
+      background: #86644b;
+      color: white;
+      border: none;
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #634b38;
+    }
+
+    /* contact & map */
+    .contact-grid {
+      display: flex;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+    .map-placeholder {
+      background: #b9a48f;
+      min-width: 300px;
+      height: 280px;
+      border-radius: 40px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3d3027;
+      font-weight: 300;
+    }
+
+    /* footer */
+    footer {
+      background: #2e241f;
+      color: #ddd0c2;
+      padding: 3rem 2rem 1.5rem;
+    }
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    .newsletter input {
+      padding: 0.8rem 1.2rem;
+      border-radius: 40px;
+      border: none;
+      margin-right: 0.5rem;
+    }
+    .copyright {
+      text-align: center;
+      margin-top: 3rem;
+      color: #7e6e60;
+    }
+
+    /* responsiveness */
+    @media (max-width: 800px) {
+      section { padding: 3rem 1rem; }
+      .floating-nav { gap: 1rem; padding: 0.5rem 1rem; }
+      .chef-container { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- cinematic intro overlay -->
+  <div id="intro-overlay">
+    <div class="intro-bg-motion">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="intro-content">
+      <h2>Welcome to a Place Where Taste Becomes an Experience.</h2>
+      <div class="intro-sub">— SAVOIR —</div>
+    </div>
+  </div>
+
+  <!-- floating navigation (appears on scroll) -->
+  <nav class="floating-nav" id="floatingNav">
+    <a href="#home">HOME</a>
+    <a href="#flavors">FLAVORS</a>
+    <a href="#menu">MENU</a>
+    <a href="#chef">CHEF</a>
+    <a href="#reserve">RESERVE</a>
+  </nav>
+
+  <!-- main content -->
+  <main id="main-content">
+    <!-- hero / home -->
+    <section class="hero" id="home">
+      <div class="hero-content">
+        <h1>SAVOIR<br>where dining tells a story</h1>
+        <p>An intimate journey through ingredients, atmosphere, and emotion.每一步都唤醒味觉记忆。</p>
+        <button class="btn" onclick="document.getElementById('flavors').scrollIntoView({behavior:'smooth'})">Begin exploration</button>
+      </div>
+    </section>
+
+    <!-- flavor discovery -->
+    <section id="flavors">
+      <h2 class="section-title">Flavor discovery</h2>
+      <p style="max-width: 600px; margin-bottom: 2rem;">Touch each element to discover its origin and role in our kitchen.</p>
+      <div class="flavor-grid">
+        <div class="ingredient-card"><div class="ingredient-icon">🌿</div><div class="ingredient-name">Verbena</div><div class="ingredient-detail">From Provence · refreshes seafood & desserts · chosen for citrusy aroma</div></div>
+        <div class="ingredient-card"><div class="ingredient-icon">🍄</div><div class="ingredient-name">Porcini</div><div class="ingredient-detail">Tuscan forests · umami heart of autumn risotto · hand-selected by chef</div></div>
+        <div class="ingredient-card"><div class="ingredient-icon">🫒</div><div class="ingredient-name">Taggiasca olive</div><div class="ingredient-detail">Ligurian coast · sweet & brine · finishes our fish dishes</div></div>
+        <div class="ingredient-card"><div class="ingredient-icon">🍋</div><div class="ingredient-name">Femminello lemon</div><div class="ingredient-detail">Sicily · intense fragrance · zest for light beginnings</div></div>
+      </div>
+    </section>
+
+    <!-- culinary menu experience -->
+    <section id="menu">
+      <h2 class="section-title">Culinary menu</h2>
+      <div class="menu-categories">
+        <button class="menu-cat-btn active" data-cat="starters">Light Beginnings</button>
+        <button class="menu-cat-btn" data-cat="mains">Crafted Main Dishes</button>
+        <button class="menu-cat-btn" data-cat="seasonal">Seasonal Creations</button>
+        <button class="menu-cat-btn" data-cat="desserts">Sweet Endings</button>
+        <button class="menu-cat-btn" data-cat="drinks">Signature Drinks</button>
+      </div>
+
+      <!-- dynamic dish grids (only one active) -->
+      <div id="menu-starters" class="dish-grid active-grid">
+        <div class="dish-card"><div class="dish-img">🥗</div><div class="dish-info"><h4>Burrata & heirloom</h4><div class="dish-desc">creamy burrata, aged balsamic, basil</div><div class="dish-price">24</div></div></div>
+        <div class="dish-card"><div class="dish-img">🐟</div><div class="dish-info"><h4>Carpaccio di pesce</h4><div class="dish-desc">sea bream, citrus gel, wild fennel</div><div class="dish-price">28</div></div></div>
+        <div class="dish-card"><div class="dish-img">🍆</div><div class="dish-info"><h4>Parmigiana revisited</h4><div class="dish-desc">smoked eggplant, parmesan foam</div><div class="dish-price">22</div></div></div>
+      </div>
+      <div id="menu-mains" class="dish-grid">...</div>
+      <div id="menu-seasonal" class="dish-grid">...</div>
+      <div id="menu-desserts" class="dish-grid">...</div>
+      <div id="menu-drinks" class="dish-grid">...</div>
+    </section>
+
+    <!-- chef spotlight -->
+    <section id="chef">
+      <h2 class="section-title">Chef spotlight</h2>
+      <div class="chef-container">
+        <div class="chef-photo"></div>
+        <div class="chef-bio">
+          <h3>Élodie Marchand</h3>
+          <p style="font-size:1.2rem; margin: 1rem 0;">"Cooking is memory — I want each plate to feel like a familiar yet surprising story."</p>
+          <p>After training at Le Bernardin and Noma, chef Élodie returned to her roots to open Savoir. Her style combines precise technique with deep respect for terroir. She personally forages herbs and works with small farmers to bring out the purest flavors.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- dining atmosphere -->
+    <section>
+      <h2 class="section-title">Dining atmosphere</h2>
+      <div class="atmo-grid">
+        <div class="atmo-item" style="background-image: radial-gradient(circle at 20% 30%, #e9d9c0, #b5977a);"></div>
+        <div class="atmo-item" style="background-image: radial-gradient(circle at 70% 60%, #ddccb8, #a58467);"></div>
+        <div class="atmo-item" style="background-image: radial-gradient(circle at 40% 80%, #d6c1ab, #8f6f53);"></div>
+      </div>
+    </section>
+
+    <!-- guest stories -->
+    <section>
+      <h2 class="section-title">Guest stories</h2>
+      <div class="stories">
+        <div class="story-card"><p>“We celebrated our 10th anniversary. The staff surprised us with a handwritten menu and a view of the kitchen. Unforgettable.”</p><h4>— Marina & Diego</h4></div>
+        <div class="story-card"><p>“The tasting menu took us through seasons I’d never experienced. The porcini risotto was pure magic.”</p><h4>— James, food writer</h4></div>
+        <div class="story-card"><p>“I came alone and sat at the counter. Watching the chefs work felt like theatre. And the olive oil cake… I dream of it.”</p><h4>— Sophie</h4></div>
+      </div>
+    </section>
+
+    <!-- table reservation -->
+    <section id="reserve">
+      <h2 class="section-title">Secure your table</h2>
+      <div class="reserve-form">
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="date" id="resDate"></div>
+          <div class="form-group"><label>Time</label><select id="resTime"><option>18:00</option><option>19:30</option><option>21:00</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Guests</label><input type="number" min="1" value="2"></div>
+          <div class="form-group"><label>Seating</label><select><option>Indoor</option><option>Outdoor terrace</option></select></div>
+        </div>
+        <button class="btn" onclick="alert('✨ Reservation request received. We will confirm shortly.')">Request reservation</button>
+      </div>
+    </section>
+
+    <!-- events & private dining -->
+    <section>
+      <h2 class="section-title">Private dining & events</h2>
+      <p style="margin-bottom:2rem;">Birthdays · corporate dinners · intimate celebrations. Our private salon accommodates up to 24 guests.</p>
+      <button class="btn" onclick="alert('Our event specialist will contact you within 24h.')">Inquire about events</button>
+    </section>
+
+    <!-- contact & location -->
+    <section>
+      <h2 class="section-title">Contact & location</h2>
+      <div class="contact-grid">
+        <div>
+          <p><strong>Savoir</strong><br>22 Rue des Saveurs, 75002 Paris</p>
+          <p>+33 1 44 55 66 77<br>reservation@savoir.paris</p>
+          <p>Open Tue–Sat · 18:30 – 23:00</p>
+        </div>
+        <div class="map-placeholder">📍 interactive map would be embedded here</div>
+      </div>
+    </section>
+
+    <!-- social connection (placeholder) -->
+    <section style="text-align: center; background: #f3ece4; border-radius: 80px 80px 0 0;">
+      <h2 class="section-title">Follow our daily inspiration</h2>
+      <div style="display: flex; gap: 2rem; justify-content: center; font-size: 3rem;">📸 🍽️ 🎥</div>
+      <p style="margin-top:1rem;">@savoir.paris on Instagram & Facebook</p>
+    </section>
+
+    <!-- footer -->
+    <footer>
+      <div class="footer-inner">
+        <div><h4>Savoir</h4><p>story · flavor · emotion</p></div>
+        <div><a href="#home" style="color:#e1cfbc;">Home</a> · <a href="#menu" style="color:#e1cfbc;">Menu</a> · <a href="#reserve" style="color:#e1cfbc;">Reserve</a></div>
+        <div class="newsletter">
+          <label>Subscribe to our newsletter</label><br>
+          <input type="email" placeholder="your@email.com"><button class="btn" style="padding:0.8rem 1.5rem;">→</button>
+        </div>
+      </div>
+      <div class="copyright">© SAVOIR 2025 — immersive culinary experience</div>
+    </footer>
+  </main>
+
+  <script>
+    (function() {
+      // intro fade-out after 4.5 seconds
+      const intro = document.getElementById('intro-overlay');
+      const main = document.getElementById('main-content');
+      setTimeout(() => {
+        intro.style.opacity = '0';
+        setTimeout(() => {
+          intro.style.display = 'none';
+          main.style.opacity = '1';
+        }, 1800);
+      }, 4300); // allow typing animation to complete
+
+      // floating nav toggle on scroll
+      const floatingNav = document.getElementById('floatingNav');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) {
+          floatingNav.classList.add('visible');
+        } else {
+          floatingNav.classList.remove('visible');
+        }
+      });
+
+      // menu category tabs
+      const catBtns = document.querySelectorAll('.menu-cat-btn');
+      const grids = {
+        starters: document.getElementById('menu-starters'),
+        mains: document.getElementById('menu-mains'),
+        seasonal: document.getElementById('menu-seasonal'),
+        desserts: document.getElementById('menu-desserts'),
+        drinks: document.getElementById('menu-drinks')
+      };
+      // fill placeholder grids with sample data (for brevity)
+      function fillGrid(gridId, titlePrefix) {
+        const g = grids[gridId];
+        if (g && g.children.length <= 1) {
+          g.innerHTML = ''; // clear placeholder
+          for (let i=1; i<=3; i++) {
+            g.innerHTML += `<div class="dish-card"><div class="dish-img">🍽️</div><div class="dish-info"><h4>${titlePrefix} ${i}</h4><div class="dish-desc">description sample</div><div class="dish-price">${28+i}</div></div></div>`;
+          }
+        }
+      }
+      fillGrid('mains', 'Main');
+      fillGrid('seasonal', 'Season');
+      fillGrid('desserts', 'Sweet');
+      fillGrid('drinks', 'Drink');
+
+      catBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          catBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const cat = btn.dataset.cat;
+          Object.values(grids).forEach(g => g.classList.remove('active-grid'));
+          if (cat === 'starters') grids.starters.classList.add('active-grid');
+          else if (cat === 'mains') grids.mains.classList.add('active-grid');
+          else if (cat === 'seasonal') grids.seasonal.classList.add('active-grid');
+          else if (cat === 'desserts') grids.desserts.classList.add('active-grid');
+          else if (cat === 'drinks') grids.drinks.classList.add('active-grid');
+        });
+      });
+
+      // smooth scroll for floating nav links
+      document.querySelectorAll('.floating-nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetId = link.getAttribute('href').substring(1);
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+
+      // newsletter button
+      document.querySelector('.newsletter .btn').addEventListener('click', ()=>{
+        alert('Thank you for subscribing to our culinary journal.');
+      });
+    })();
+  </script>
+
+  <!-- small style additions for hidden grids -->
+  <style>
+    .dish-grid { display: none; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    .dish-grid.active-grid { display: grid; }
+    #menu-mains .dish-img { background: #b39b80; }
+    #menu-seasonal .dish-img { background: #9f8b74; }
+    #menu-desserts .dish-img { background: #dbbc9b; }
+    #menu-drinks .dish-img { background: #ad927b; }
+  </style>
+</body>
+</html>
